@@ -386,6 +386,10 @@ cottages.allow_sit = function( player )
 	return false;
 end
 
+local previous_physics = {} -- playername -> table
+local physics_still = { speed = 0, jump = 0, gravity = 0 }
+local physics_default = { speed = 1, jump = 1, gravity = 1}
+
 cottages.sit_on_bench = function( pos, node, clicker, itemstack, pointed_thing )
 	if( not( clicker ) or not( default.player_get_animation ) or not( cottages.allow_sit( clicker ))) then
 		return;
@@ -398,7 +402,7 @@ cottages.sit_on_bench = function( pos, node, clicker, itemstack, pointed_thing )
 		default.player_attached[pname] = false
 		clicker:set_pos({x=pos.x,y=pos.y-0.5,z=pos.z})
 		clicker:set_eye_offset({x=0,y=0,z=0}, {x=0,y=0,z=0})
-		clicker:set_physics_override(1, 1, 1)
+		clicker:set_physics_override(previous_physics[pname] or physics_default)
 		default.player_set_animation(clicker, "stand", 30)
 	else
 		-- the bench is not centered; prevent the player from sitting on air
@@ -416,7 +420,8 @@ cottages.sit_on_bench = function( pos, node, clicker, itemstack, pointed_thing )
 		clicker:set_eye_offset({x=0,y=-7,z=2}, {x=0,y=0,z=0})
 		clicker:set_pos( p2 )
 		default.player_set_animation(clicker, "sit", 30)
-		clicker:set_physics_override(0, 0, 0)
+		previous_physics[pname] = clicker:get_physics_override()
+		clicker:set_physics_override(physics_still)
 		default.player_attached[pname] = true
 	end
 end
@@ -446,7 +451,7 @@ cottages.sleep_in_bed = function( pos, node, clicker, itemstack, pointed_thing )
 		default.player_attached[pname] = false
 		clicker:set_pos({x=pos.x,y=pos.y-0.5,z=pos.z})
 		clicker:set_eye_offset({x=0,y=0,z=0}, {x=0,y=0,z=0})
-		clicker:set_physics_override(1, 1, 1)
+		clicker:set_physics_override(previous_physics[pname] or physics_default)
 		default.player_set_animation(clicker, "stand", 30)
 		minetest.chat_send_player( pname, 'That was enough sleep for now. You stand up again.');
 		return;
@@ -547,7 +552,7 @@ cottages.sleep_in_bed = function( pos, node, clicker, itemstack, pointed_thing )
 			default.player_attached[pname] = false
 			clicker:set_pos({x=pos.x,y=pos.y-0.5,z=pos.z})
 			clicker:set_eye_offset({x=0,y=0,z=0}, {x=0,y=0,z=0})
-			clicker:set_physics_override(1, 1, 1)
+			clicker:set_physics_override(previous_physics[pname] or physics_default)
 			default.player_set_animation(clicker, "stand", 30)
 			minetest.chat_send_player( pname, 'That was enough sitting around for now. You stand up again.');
 			return;
@@ -558,7 +563,8 @@ cottages.sleep_in_bed = function( pos, node, clicker, itemstack, pointed_thing )
 	clicker:set_eye_offset({x=0,y=-7,z=2}, {x=0,y=0,z=0})
 	clicker:set_pos( p );
 	default.player_set_animation(clicker, new_animation, 30)
-	clicker:set_physics_override(0, 0, 0)
+	previous_physics[pname] = clicker:get_physics_override()
+	clicker:set_physics_override(physics_still)
 	default.player_attached[pname] = true
 
 	if( allow_sleep==true) then
